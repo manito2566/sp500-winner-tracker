@@ -41,6 +41,7 @@ if prices.empty or benchmark not in prices.columns:
 
 rows = [analyze(prices, ticker, benchmark) for ticker in symbols if ticker in prices.columns]
 df = pd.DataFrame(row for row in rows if row)
+input_order = {ticker: index for index, ticker in enumerate(symbols)}
 missing = sorted(set(symbols) - set(df.get("Ticker", [])))
 if df.empty:
     st.error("ข้อมูลย้อนหลังไม่เพียงพอสำหรับวิเคราะห์ EMA200"); st.stop()
@@ -50,10 +51,29 @@ c1,c2,c3,c4 = st.columns(4)
 c1.metric("หุ้นที่วิเคราะห์", len(df)); c2.metric("Leader", int((df.Status=="Leader").sum()))
 c3.metric("ต้องทบทวน", int(df.Status.isin(["Warning","Review/Exit"]).sum())); c4.metric("Market Regime", df.Market.mode().iloc[0])
 all_status = ["Leader","Watch","Warning","Review/Exit"]
-selected = st.multiselect("กรองสถานะ", all_status, default=all_status)
-view = df[df.Status.isin(selected)].sort_values(["Score","RS 3M"], ascending=False)
+filter_col, sort_col, direction_col = st.columns([2, 1.5, 1])
+with filter_col:
+    selected = st.multiselect("กรองสถานะ", all_status, default=all_status)
+sort_options = {
+    "ลำดับที่กรอก": "Input order", "คะแนน": "Score", "ราคา": "Price",
+    "RS 1 เดือน": "RS 1M", "RS 3 เดือน": "RS 3M", "RS 6 เดือน": "RS 6M",
+    "RS 12 เดือน": "RS 12M", "RSI": "RSI", "Drawdown": "Drawdown", "สถานะ": "Status"
+}
+with sort_col:
+    sort_label = st.selectbox("จัดเรียงตาม", list(sort_options), index=1)
+with direction_col:
+    direction = st.selectbox("ทิศทาง", ["มาก → น้อย", "น้อย → มาก"], index=0)
+view = df[df.Status.isin(selected)].copy()
+view["Input order"] = view["Ticker"].map(input_order)
+status_rank = {"Leader": 4, "Watch": 3, "Warning": 2, "Review/Exit": 1}
+view["Status rank"] = view["Status"].map(status_rank)
+sort_key = "Status rank" if sort_options[sort_label] == "Status" else sort_options[sort_label]
+ascending = direction == "น้อย → มาก"
+if sort_key == "Input order": ascending = True
+view = view.sort_values([sort_key, "Ticker"], ascending=[ascending, True], kind="stable")
+view.insert(0, "อันดับ", range(1, len(view) + 1))
 st.subheader("สถานะและเหตุผล")
-cols = ["Ticker","Status","Action","Score","Price","RS 1M","RS 3M","RS 6M","RS 12M","RSI","Drawdown","Market","Reasons","Risks","Updated"]
+cols = ["อันดับ","Ticker","Status","Action","Score","Price","RS 1M","RS 3M","RS 6M","RS 12M","RSI","Drawdown","Market","Reasons","Risks","Updated"]
 fmt = {"Price":"{:.2f}","RS 1M":"{:.1%}","RS 3M":"{:.1%}","RS 6M":"{:.1%}","RS 12M":"{:.1%}","RSI":"{:.1f}","Drawdown":"{:.1%}"}
 st.dataframe(view[cols].style.format(fmt), use_container_width=True, height=430)
 left,right = st.columns(2)
