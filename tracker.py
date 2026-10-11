@@ -3,6 +3,16 @@ import pandas as pd
 
 TRADING_WINDOWS = {"1M": 21, "3M": 63, "6M": 126, "12M": 252}
 
+def normalize_ticker(value: str) -> str:
+    """Convert TradingView symbols such as NASDAQ:NVDA to Yahoo symbols."""
+    ticker = str(value).strip().upper()
+    if ":" in ticker:
+        ticker = ticker.rsplit(":", 1)[-1]
+    ticker = ticker.strip().replace("/", "-")
+    if ticker in {"BRK.B", "BRK/B"}: ticker = "BRK-B"
+    if ticker in {"BF.B", "BF/B"}: ticker = "BF-B"
+    return ticker
+
 def period_return(series: pd.Series, sessions: int) -> float:
     clean = series.dropna()
     if len(clean) <= sessions: return float("nan")

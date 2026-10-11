@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pandas as pd
-from tracker import analyze, period_return
+from tracker import analyze, normalize_ticker, period_return
 
 class TrackerTests(unittest.TestCase):
     def setUp(self):
@@ -18,5 +18,9 @@ class TrackerTests(unittest.TestCase):
         result = analyze(self.prices, "WEAK")
         self.assertEqual(result["Status"], "Review/Exit")
         self.assertLess(result["RS 3M"], 0)
+    def test_normalizes_tradingview_symbols(self):
+        self.assertEqual(normalize_ticker("NASDAQ:NVDA"), "NVDA")
+        self.assertEqual(normalize_ticker(" AMEX:SPY "), "SPY")
+        self.assertEqual(normalize_ticker("BRK.B"), "BRK-B")
 
 if __name__ == "__main__": unittest.main()

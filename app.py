@@ -2,7 +2,7 @@ import io
 import pandas as pd
 import streamlit as st
 import yfinance as yf
-from tracker import analyze
+from tracker import analyze, normalize_ticker
 
 st.set_page_config(page_title="S&P 500 Winner Tracker", layout="wide")
 
@@ -24,12 +24,16 @@ with st.sidebar:
     if "Ticker" not in watch.columns:
         st.error("CSV ต้องมีคอลัมน์ Ticker"); st.stop()
     tickers = st.text_area("Ticker คั่นด้วย comma", ",".join(watch["Ticker"].dropna().astype(str)))
-    benchmark = st.text_input("Benchmark", "SPY").strip().upper()
+    benchmark = normalize_ticker(st.text_input("Benchmark", "SPY"))
     period = st.selectbox("ช่วงข้อมูล", ["2y", "5y", "10y"], index=0)
 
-symbols = list(dict.fromkeys(x.strip().upper() for x in tickers.split(",") if x.strip()))
+raw_symbols = [x for x in tickers.replace("\n", ",").split(",") if x.strip()]
+symbols = list(dict.fromkeys(normalize_ticker(x) for x in raw_symbols if normalize_ticker(x)))
 if not symbols:
     st.info("กรุณาใส่ Ticker อย่างน้อยหนึ่งตัว"); st.stop()
+converted = [f"{raw.strip()} → {normalize_ticker(raw)}" for raw in raw_symbols if raw.strip().upper() != normalize_ticker(raw)]
+if converted:
+    st.sidebar.caption("แปลงรูปแบบ TradingView อัตโนมัติ: " + ", ".join(converted[:8]) + (" …" if len(converted) > 8 else ""))
 with st.spinner("กำลังประมวลผลข้อมูลตลาด..."):
     prices = load_prices(symbols, benchmark, period)
 if prices.empty or benchmark not in prices.columns:
