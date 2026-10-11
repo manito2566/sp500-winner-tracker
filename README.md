@@ -2,6 +2,8 @@
 
 MVP สำหรับติดตามหุ้นที่เคยชนะ S&P 500 โดยคำนวณ Relative Strength หลายช่วงเวลา, EMA, RSI, Drawdown, Market Regime และจัดสถานะ Leader/Watch/Warning/Review พร้อมเหตุผลและความเสี่ยง
 
+แอปที่เผยแพร่แล้ว: https://sp500-winner-tracker.streamlit.app/
+
 ## เริ่มใช้งาน
 
 ```powershell
