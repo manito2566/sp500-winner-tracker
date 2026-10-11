@@ -75,7 +75,7 @@ view.insert(0, "อันดับ", range(1, len(view) + 1))
 st.subheader("สถานะและเหตุผล")
 cols = ["อันดับ","Ticker","Status","Action","Score","Price","RS 1M","RS 3M","RS 6M","RS 12M","RSI","Drawdown","Market","Reasons","Risks","Updated"]
 fmt = {"Price":"{:.2f}","RS 1M":"{:.1%}","RS 3M":"{:.1%}","RS 6M":"{:.1%}","RS 12M":"{:.1%}","RSI":"{:.1f}","Drawdown":"{:.1%}"}
-st.dataframe(view[cols].style.format(fmt), use_container_width=True, height=430)
+st.dataframe(view[cols].style.format(fmt), use_container_width=True, height=430, hide_index=True)
 left,right = st.columns(2)
 with left:
     st.subheader("Relative Strength"); st.bar_chart(view.set_index("Ticker")[["RS 1M","RS 3M","RS 6M"]])
