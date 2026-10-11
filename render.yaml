@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: sp500-winner-tracker
+    runtime: docker
+    plan: free
+    healthCheckPath: /_stcore/health
+    autoDeploy: true
